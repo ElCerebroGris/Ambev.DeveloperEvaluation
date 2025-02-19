@@ -100,7 +100,7 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales
         [HttpPut("{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> UpdateSale([FromBody] Guid id, [FromBody] UpdateSaleRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateSale([FromRoute] Guid id, [FromBody] UpdateSaleRequest request, CancellationToken cancellationToken)
         {
             var validator = new UpdateSaleRequestValidator();
             var validationResult = await validator.ValidateAsync(request, cancellationToken);

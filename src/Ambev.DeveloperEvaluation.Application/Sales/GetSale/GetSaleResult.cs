@@ -1,4 +1,5 @@
 ﻿using Ambev.DeveloperEvaluation.Domain.Common;
+using Ambev.DeveloperEvaluation.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -6,13 +7,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ambev.DeveloperEvaluation.Domain.Entities
+namespace Ambev.DeveloperEvaluation.Application.Sales.GetSale
 {
     /// <summary>
-    /// Represents a Sale entity with external identities and denormalized descriptions.
+    /// Response model for GetSale operation
     /// </summary>
-    public class Sale: BaseEntity
+    public class GetSaleResult
     {
+        /// <summary>
+        /// The unique identifier of the sale
+        /// </summary>
+        public Guid Id { get; set; }
+
         /// <summary>
         /// Unique sale number.
         /// </summary>
@@ -57,14 +63,17 @@ namespace Ambev.DeveloperEvaluation.Domain.Entities
         /// <summary>
         /// Collection of sale items.
         /// </summary>
-        public List<SaleItem> Items { get; set; } = new();
+        public List<GetSaleItemResult> Items { get; set; } = new();
     }
-
     /// <summary>
     /// Represents a sale item with product details and discounts.
     /// </summary>
-    public class SaleItem : BaseEntity
+    public class GetSaleItemResult
     {
+        /// <summary>
+        /// The unique identifier of the item sale
+        /// </summary>
+        public Guid Id { get; set; }
 
         public Guid SaleId { get; set; }
 
@@ -98,4 +107,5 @@ namespace Ambev.DeveloperEvaluation.Domain.Entities
         /// </summary>
         public decimal TotalAmount { get; set; }
     }
+
 }

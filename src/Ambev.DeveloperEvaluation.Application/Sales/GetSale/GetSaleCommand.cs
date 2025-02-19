@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Ambev.DeveloperEvaluation.Application.Users.GetUser;
+using MediatR;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +8,10 @@ using System.Threading.Tasks;
 
 namespace Ambev.DeveloperEvaluation.Application.Sales.GetSale
 {
-    public class GetSaleCommand
+    /// <summary>
+    /// Command for retrieving a sale by their ID
+    /// </summary>
+    public class GetSaleCommand : IRequest<GetSaleResult>
     {
         /// <summary>
         /// The unique identifier of the sale to retrieve
