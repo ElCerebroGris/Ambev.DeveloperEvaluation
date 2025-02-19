@@ -21,7 +21,6 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales.UpdateSale
         /// </remarks>
         public UpdateSaleRequestValidator()
         {
-            RuleFor(sale => sale.Id).NotEmpty();
             RuleFor(sale => sale.CustomerId).NotEmpty();
             RuleFor(sale => sale.CustomerName).NotEmpty().Length(3, 100);
             RuleFor(sale => sale.BranchId).NotEmpty();

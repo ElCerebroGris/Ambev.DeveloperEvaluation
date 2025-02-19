@@ -12,7 +12,6 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.UpdateSale
     {
         public UpdateSaleCommandValidator()
         {
-            RuleFor(sale => sale.Id).NotEmpty();
             RuleFor(sale => sale.CustomerId).NotEmpty();
             RuleFor(sale => sale.CustomerName).NotEmpty().Length(3, 100);
             RuleFor(sale => sale.BranchId).NotEmpty();
@@ -26,7 +25,6 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.UpdateSale
     {
         public UpdateSaleItemValidator()
         {
-            RuleFor(item => item.Id).NotEmpty();
             RuleFor(item => item.ProductId).NotEmpty();
             RuleFor(item => item.ProductName).NotEmpty();
             RuleFor(item => item.Quantity).InclusiveBetween(1, 20);

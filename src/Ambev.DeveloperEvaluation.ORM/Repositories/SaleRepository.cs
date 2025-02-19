@@ -61,11 +61,14 @@ namespace Ambev.DeveloperEvaluation.ORM.Repositories
                 throw new KeyNotFoundException($"Sale with ID {id} not found.");
             }
 
+            ////_context.Entry(existingSale).CurrentValues.SetValues(sale);
             _context.Entry(existingSale).CurrentValues.SetValues(sale);
+            _context.Entry(existingSale).State = EntityState.Modified;
 
             await _context.SaveChangesAsync(cancellationToken);
 
             return existingSale;
         }
+
     }
 }

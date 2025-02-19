@@ -46,11 +46,106 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.UpdateSale
             if (!validationResult.IsValid)
                 throw new ValidationException(validationResult.Errors);
 
-            var sale = _mapper.Map<Sale>(command);
+            var existingSale = await _saleRepository.GetByIdAsync(command.Id);
 
-            var createdSale = await _saleRepository.UpdateAsync(sale.Id, sale, cancellationToken);
+            if (existingSale == null)
+                throw new KeyNotFoundException($"Sale with ID {command.Id} not found.");
+
+            UpdateSaleMetadata(existingSale, command);
+            UpdateSaleItems(existingSale, command);
+            RecalculateSaleTotals(existingSale);
+
+            var createdSale = await _saleRepository.UpdateAsync(existingSale.Id, existingSale, cancellationToken);
             var result = _mapper.Map<UpdateSaleResult>(createdSale);
             return result;
         }
+
+
+        /// <summary>
+        /// Calculates the discount based on quantity and unit price.
+        /// </summary>
+        private decimal CalculateDiscount(int quantity, decimal unitPrice)
+        {
+            if (quantity > 20)
+                throw new ArgumentException("Cannot sell more than 20 items of the same product.");
+
+            if (quantity >= 10) return unitPrice * quantity * 0.20m;
+            if (quantity >= 4) return unitPrice * quantity * 0.10m;
+
+            return 0m;
+        }
+
+        /// <summary>
+        /// Updates sale-level metadata (customer and branch info).
+        /// </summary>
+        private void UpdateSaleMetadata(Sale sale, UpdateSaleCommand command)
+        {
+            sale.CustomerId = Guid.Parse(command.CustomerId);
+            sale.CustomerName = command.CustomerName;
+            sale.BranchId = Guid.Parse(command.BranchId);
+            sale.BranchName = command.BranchName;
+        }
+
+        /// <summary>
+        /// Updates existing items, adds new ones, and removes items not in the update request.
+        /// </summary>
+        private void UpdateSaleItems(Sale sale, UpdateSaleCommand command)
+        {
+            var requestItems = command.Items.ToDictionary(i => i.ProductId);
+
+            // Update or remove existing items
+            sale.Items.RemoveAll(item =>
+            {
+                if (requestItems.TryGetValue(item.ProductId, out var reqItem))
+                {
+                    UpdateItem(item, reqItem);
+                    requestItems.Remove(item.ProductId); // Item updated, remove from requestItems
+                    return false; // Keep item
+                }
+                return true; // Remove item if not found in request
+            });
+
+            // Add new items
+            sale.Items.AddRange(requestItems.Values.Select(reqItem => CreateItem(sale.Id, reqItem)));
+        }
+
+        /// <summary>
+        /// Recalculates discounts and total amounts for all items and updates the sale's total amount.
+        /// </summary>
+        private void RecalculateSaleTotals(Sale sale)
+        {
+            foreach (var item in sale.Items)
+            {
+                item.Discount = CalculateDiscount(item.Quantity, item.UnitPrice);
+                item.TotalAmount = (item.UnitPrice * item.Quantity) - item.Discount;
+            }
+
+            sale.TotalAmount = sale.Items.Sum(i => i.TotalAmount);
+        }
+
+        /// <summary>
+        /// Updates an existing SaleItem with new data.
+        /// </summary>
+        private static void UpdateItem(SaleItem item, UpdateSaleItemCommand req)
+        {
+            item.ProductName = req.ProductName;
+            item.Quantity = req.Quantity;
+            item.UnitPrice = req.UnitPrice;
+        }
+
+        /// <summary>
+        /// Creates a new SaleItem based on the request.
+        /// </summary>
+        private SaleItem CreateItem(Guid saleId, UpdateSaleItemCommand req) => new()
+        {
+            Id = Guid.NewGuid(),
+            SaleId = saleId,
+            ProductId = req.ProductId,
+            ProductName = req.ProductName,
+            Quantity = req.Quantity,
+            UnitPrice = req.UnitPrice,
+            Discount = CalculateDiscount(req.Quantity, req.UnitPrice),
+            TotalAmount = (req.UnitPrice * req.Quantity) - CalculateDiscount(req.Quantity, req.UnitPrice)
+        };
     }
 }

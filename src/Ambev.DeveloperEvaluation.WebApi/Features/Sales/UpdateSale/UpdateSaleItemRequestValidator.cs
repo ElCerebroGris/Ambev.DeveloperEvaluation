@@ -7,7 +7,6 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales.UpdateSale
     {
         public UpdateSaleItemRequestValidator()
         {
-            RuleFor(item => item.Id).NotEmpty();
             RuleFor(item => item.ProductId).NotEmpty();
             RuleFor(item => item.ProductName).NotEmpty();
             RuleFor(item => item.Quantity).InclusiveBetween(1, 20);

@@ -17,6 +17,8 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales.UpdateSale
         {
             CreateMap<UpdateSaleRequest, UpdateSaleCommand>();
             CreateMap<UpdateSaleResult, UpdateSaleResponse>();
+
+            CreateMap<UpdateSaleItemRequest, UpdateSaleItemCommand>();
         }
     }
 }

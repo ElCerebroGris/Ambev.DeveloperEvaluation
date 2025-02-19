@@ -47,7 +47,14 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
 
             var sale = _mapper.Map<Sale>(command);
 
+            foreach (var item in sale.Items)
+            {
+                item.Discount = CalculateDiscount(item.Quantity, item.UnitPrice);
+                item.TotalAmount = (item.UnitPrice * item.Quantity) - item.Discount;
+            }
+
             sale.TotalAmount = sale.Items.Sum(i => i.TotalAmount);
+
             sale.SaleNumber = GenerateSaleNumber();
             sale.SaleDate = DateTime.UtcNow;
 
@@ -59,6 +66,20 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale
         private string GenerateSaleNumber()
         {
             return $"SALE-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString().Substring(0, 6).ToUpper()}";
+        }
+
+        /// <summary>
+        /// Calculates the discount based on quantity and unit price.
+        /// </summary>
+        private decimal CalculateDiscount(int quantity, decimal unitPrice)
+        {
+            if (quantity > 20)
+                throw new ArgumentException("Cannot sell more than 20 items of the same product.");
+
+            if (quantity >= 10) return unitPrice * quantity * 0.20m;
+            if (quantity >= 4) return unitPrice * quantity * 0.10m;
+
+            return 0m;
         }
     }
 }
