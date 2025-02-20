@@ -38,7 +38,7 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.GetSale
         /// </summary>
         /// <param name="request">The GetSale command</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>The user details if found</returns>
+        /// <returns>The sale details if found</returns>
         public async Task<GetSaleResult> Handle(GetSaleCommand request, CancellationToken cancellationToken)
         {
             var validator = new GetSaleValidator();
@@ -47,11 +47,11 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.GetSale
             if (!validationResult.IsValid)
                 throw new ValidationException(validationResult.Errors);
 
-            var user = await _saleRepository.GetByIdAsync(request.Id, cancellationToken);
-            if (user == null)
+            var sale = await _saleRepository.GetByIdAsync(request.Id, cancellationToken);
+            if (sale == null)
                 throw new KeyNotFoundException($"Sale with ID {request.Id} not found");
 
-            return _mapper.Map<GetSaleResult>(user);
+            return _mapper.Map<GetSaleResult>(sale);
         }
     }
 }
