@@ -30,11 +30,13 @@ public class SalesController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly IMapper _mapper;
+    private static ILogger _logger;
 
-    public SalesController(IMediator mediator, IMapper mapper)
+    public SalesController(IMediator mediator, IMapper mapper, ILogger logger)
     {
         _mediator = mediator;
         _mapper = mapper;
+        _logger = logger;
     }
 
     /// <summary>
@@ -62,6 +64,8 @@ public class SalesController : ControllerBase
         {
             var command = _mapper.Map<GetSaleCommand>(request.Id);
             var response = await _mediator.Send(command, cancellationToken);
+
+            LogEvent("SaleCreated", response.Id, $"Sale created with ID: {response.Id}");
 
             return Ok(new ApiResponseWithData<GetSaleResponse>
             {
@@ -105,15 +109,30 @@ public class SalesController : ControllerBase
         if (!validationResult.IsValid)
             return BadRequest(validationResult.Errors);
 
-        var command = _mapper.Map<ListSaleCommand>(query);
-        var response = await _mediator.Send(command, cancellationToken);
+        
 
-        return Ok(new ApiResponseWithData<List<GetSaleResponse>>
+        try
         {
-            Success = true,
-            Message = "Sales retrieved successfully",
-            Data = _mapper.Map<List<GetSaleResponse>>(response)
-        });
+            var command = _mapper.Map<ListSaleCommand>(query);
+            var response = await _mediator.Send(command, cancellationToken);
+
+            return Ok(new ApiResponseWithData<List<GetSaleResponse>>
+            {
+                Success = true,
+                Message = "Sales retrieved successfully",
+                Data = _mapper.Map<List<GetSaleResponse>>(response)
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse
+            {
+                Success = false,
+                Message = "An unexpected error occurred while deleting the sale."
+            });
+        }
+
+        
     }
 
     /// <summary>
@@ -132,16 +151,37 @@ public class SalesController : ControllerBase
         if (!validationResult.IsValid)
             return BadRequest(validationResult.Errors);
 
-        var command = _mapper.Map<UpdateSaleCommand>(request);
-        command.Id = id;
-        var response = await _mediator.Send(command, cancellationToken);
-
-        return Ok(new ApiResponseWithData<UpdateSaleResponse>
+        try
         {
-            Success = true,
-            Message = "Sale updated successfully",
-            Data = _mapper.Map<UpdateSaleResponse>(response)
-        });
+            var command = _mapper.Map<UpdateSaleCommand>(request);
+            command.Id = id;
+            var response = await _mediator.Send(command, cancellationToken);
+
+            LogEvent("SaleModified", command.Id, $"Sale with ID: {command.Id} has been modified.");
+
+            return Ok(new ApiResponseWithData<UpdateSaleResponse>
+            {
+                Success = true,
+                Message = "Sale updated successfully",
+                Data = _mapper.Map<UpdateSaleResponse>(response)
+            });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new ApiResponse
+            {
+                Success = false,
+                Message = $"No sale found with ID {id}. Please verify the ID and try again."
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse
+            {
+                Success = false,
+                Message = "An unexpected error occurred while deleting the sale."
+            });
+        }
     }
 
     /// <summary>
@@ -194,4 +234,10 @@ public class SalesController : ControllerBase
             });
         }
     }
+
+    private static void LogEvent(string eventName, Guid entityId, string message)
+    {
+        _logger?.LogInformation("Event: {EventName} | Entity ID: {EntityId} | Message: {Message}", eventName, entityId, message);
+    }
+
 }
