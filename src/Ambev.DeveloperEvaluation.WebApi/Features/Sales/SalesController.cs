@@ -30,9 +30,9 @@ public class SalesController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly IMapper _mapper;
-    private static ILogger _logger;
+    private static ILogger<SalesController> _logger;
 
-    public SalesController(IMediator mediator, IMapper mapper, ILogger logger)
+    public SalesController(IMediator mediator, IMapper mapper, ILogger<SalesController> logger)
     {
         _mediator = mediator;
         _mapper = mapper;

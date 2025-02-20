@@ -51,6 +51,7 @@ public class Program
             });
 
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+            builder.Services.AddLogging();
 
             var app = builder.Build();
             app.UseMiddleware<ValidationExceptionMiddleware>();
