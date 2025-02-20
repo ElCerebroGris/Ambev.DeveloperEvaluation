@@ -46,13 +46,18 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.UpdateSale
             if (!validationResult.IsValid)
                 throw new ValidationException(validationResult.Errors);
 
-            var existingSale = await _saleRepository.GetByIdAsync(command.Id);
+            var existingSale = await _saleRepository.GetByIdAsync(command.Id, cancellationToken);
 
             if (existingSale == null)
                 throw new KeyNotFoundException($"Sale with ID {command.Id} not found.");
 
+            // Update sale metadata
             UpdateSaleMetadata(existingSale, command);
+
+            // Update sale items (add new, update existing, remove missing)
             UpdateSaleItems(existingSale, command);
+
+            // Recalculate total amounts and discounts
             RecalculateSaleTotals(existingSale);
 
             var createdSale = await _saleRepository.UpdateAsync(existingSale.Id, existingSale, cancellationToken);

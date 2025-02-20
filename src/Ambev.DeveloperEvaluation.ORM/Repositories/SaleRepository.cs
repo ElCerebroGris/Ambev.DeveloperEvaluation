@@ -51,7 +51,7 @@ namespace Ambev.DeveloperEvaluation.ORM.Repositories
 
         public async Task<Sale?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
         {
-            return await _context.Sales.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+            return await _context.Sales.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace Ambev.DeveloperEvaluation.ORM.Repositories
         public async Task<List<Sale>> ListAllAsync(ListSaleFilter pagination, CancellationToken cancellationToken)
         {
             var query = _context.Sales.Include(s => s.Items).AsQueryable();
-            return await BuildFilteredQuery(query, pagination).ToListAsync();
+            return await BuildFilteredQuery(query, pagination).AsNoTracking().ToListAsync();
         }
 
         public async Task<Sale> UpdateAsync(Guid id, Sale sale, CancellationToken cancellationToken)
@@ -72,7 +72,6 @@ namespace Ambev.DeveloperEvaluation.ORM.Repositories
                 throw new KeyNotFoundException($"Sale with ID {id} not found.");
             }
 
-            ////_context.Entry(existingSale).CurrentValues.SetValues(sale);
             _context.Entry(existingSale).CurrentValues.SetValues(sale);
             _context.Entry(existingSale).State = EntityState.Modified;
 
